@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  username String    @unique
+  password String
+  machines Machine[]
+}
+
+model Machine {
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String      @db.ObjectId
+  ip                 String      @unique
+  hostname           String
+  cpuCores           Int
+  ram                Int
+  // status             Status      @default(RUNNING)
+  netdataContainerId String
+  user               User        @relation(fields: [userId], references: [id])
+  containers         Container[]
+}
+
+model Container {
+  id             String  @id @map("_id")
+  machineId      String  @db.ObjectId
+  name           String
+  status         Status  @default(STOPPED)
+  onReverseProxy Boolean
+  port           Int
+  machine        Machine @relation(fields: [machineId], references: [id])
+}
+
+enum Status {
+  RUNNING
+  STOPPED
+}
